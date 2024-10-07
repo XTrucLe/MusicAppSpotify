@@ -15,17 +15,25 @@
         </div>
     </div>
 
-    <div class="playlist-section">
-        <h2>Đề Xuất (Recommended)</h2>
-        <div id="recommended" class="horizontal-scroll">
-            {% for track in recommended_songs %}
-                <div class="playlist-item"
-                     onclick="playSong('{{ track.uri }}', '{{ track.name }}', '{{ track.album.images[0].url }}', '{{ track.artists[0].name }}')">
-                    <img src="{{ track['album']['images'][0]['url'] }}" alt="Album cover" class="album-cover">
-                    <strong>{{ track['name'] }}</strong> by <em>{{ track['artists'][0]['name'] }}</em>
-                </div>
+   <div class="playlist-section">
+    <h2>Đề Xuất (Recommended)</h2>
+    <div id="recommended" class="horizontal-scroll">
+        {% for track in recommended_songs %}
+            <div class="playlist-item">
+                <img src="{{ track['album']['images'][0]['url'] }}" alt="Album cover" class="album-cover">
+                <strong>{{ track['name'] }}</strong> by <em>{{ track['artists'][0]['name'] }}</em>
 
-            {% endfor %}
-        </div>
+                {% if premium %}
+                    <button class="play-button">Play</button>
+                {% else %}
+                    <audio controls>
+                        <source src="{{ track['preview_url'] }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                {% endif %}
+            </div>
+        {% endfor %}
     </div>
+</div>
+
 {% endblock %}

@@ -1,8 +1,7 @@
 import json
-
 from flask import Flask, request, redirect, session, url_for, render_template, jsonify
 from flask_cors import CORS
-from spotipy import Spotify
+from spotipy import Spotify, SpotifyException
 from spotipy.oauth2 import SpotifyOAuth
 
 app = Flask(__name__)
@@ -17,6 +16,20 @@ SPOTIPY_REDIRECT_URI = 'http://127.0.0.1:5000/callback'
 
 sp_oauth = SpotifyOAuth(client_id=SPOTIPY_CLIENT_ID, client_secret=SPOTIPY_CLIENT_SECRET,
                         redirect_uri=SPOTIPY_REDIRECT_URI)
+
+
+def get_token():
+    token_info = session.get('token_info', None)
+
+    # Kiểm tra nếu token_info đã tồn tại
+    if token_info:
+        # Làm mới token nếu hết hạn
+        if sp_oauth.is_token_expired(token_info):
+            token_info = sp_oauth.refresh_access_token(token_info['refresh_token'])
+            session['token_info'] = token_info
+        return token_info
+    else:
+        return None
 
 
 @app.route('/')
@@ -43,44 +56,67 @@ def callback():
 
 @app.route('/home')
 def home():
-    token_info = session.get('token_info', None)
+    # Lấy hoặc làm mới token
+    token_info = get_token()
 
     if token_info is None:
         return redirect(url_for('login'))
 
     sp = Spotify(auth=token_info['access_token'])
-    access_token = token_info['access_token']
 
     # Lấy danh sách thịnh hành (trending) - từ mục các bài hát nổi bật
-    trending_playlists = sp.featured_playlists(limit=10)
+    try:
+        trending_playlists = sp.featured_playlists(limit=10)
+    except SpotifyException as e:
+        print(f"SpotifyException: {e}")
+        return redirect(url_for('login'))
 
     # Lấy danh sách đề xuất (recommendations) dựa trên các sở thích của người dùng
     recommendations = sp.recommendations(seed_genres=['pop', 'rock', 'hip-hop'], limit=10)
 
+    # Kiểm tra xem người dùng có phải là Premium hay không
+    user_info = sp.current_user()
+    premium_status = user_info.get('product', 'free') == 'premium'
+
     # Gửi dữ liệu đến template
     return render_template(
         'home.html',
-        token_info=token_info,
         trending_songs=trending_playlists['playlists']['items'],
         recommended_songs=recommendations['tracks'],
-        access_token=access_token
+        premium=premium_status
     )
 
 
 @app.route('/search')
 def search():
     query = request.args.get('query')  # Lấy truy vấn từ URL
-    results = None
-    if query:
-        token_info = sp_oauth.get_access_token()
-        sp = Spotify(auth=token_info['access_token'])
+
+    # Kiểm tra xem có truy vấn không
+    if not query:
+        # Nếu truy vấn rỗng hoặc không có, hiển thị thông báo lỗi
+        return render_template('search.html', results=None, error="Please enter a search query.")
+
+    # Lấy token hoặc làm mới token
+    token_info = get_token()
+
+    if token_info is None:
+        return redirect(url_for('login'))
+
+    sp = Spotify(auth=token_info['access_token'])
+
+    try:
+        # Gọi API tìm kiếm với truy vấn hợp lệ
         results = sp.search(q=query, type='track', limit=10)
+    except SpotifyException as e:
+        print(f"SpotifyException: {e}")
+        return render_template('search.html', results=None, error="Error during search.")
+
     return render_template('search.html', results=results)
 
 
 @app.route('/create')
 def create_playlist():
-    token_info = session.get('token_info', None)
+    token_info = get_token()
 
     if token_info is None:
         return redirect(url_for('login'))
@@ -96,17 +132,14 @@ def create_playlist():
 
 
 @app.route('/get_token', methods=['GET'])
-def get_token():
-    # Đọc token từ file .cache
-    try:
-        with open('.cache', 'r') as cache_file:
-            token_info = json.load(cache_file)
-            token = token_info.get('access_token', None)
-            return jsonify({'token': token})
-    except FileNotFoundError:
-        return jsonify({'error': 'Cache file not found'}), 404
-    except json.JSONDecodeError:
-        return jsonify({'error': 'Error decoding JSON from cache'}), 500
+def get_token_route():
+    token_info = get_token()
+
+    if token_info:
+        token = token_info.get('access_token', None)
+        return jsonify({'token': token})
+    else:
+        return jsonify({'error': 'Token not found or expired'}), 404
 
 
 if __name__ == '__main__':
