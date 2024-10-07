@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Spotify Clone{% endblock %}
+
+{% block content %}
+    <div class="playlist-section">
+        <h2>Thịnh Hành (Trending)</h2>
+        <div id="trending" class="horizontal-scroll">
+            {% for playlist in trending_songs %}
+                <div class="playlist-item">
+                    <img src="{{ playlist['images'][0]['url'] }}" alt="Album cover" class="album-cover">
+                    <strong>{{ playlist['name'] }}</strong>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="playlist-section">
+        <h2>Đề Xuất (Recommended)</h2>
+        <div id="recommended" class="horizontal-scroll">
+            {% for track in recommended_songs %}
+                <div class="playlist-item"
+                     onclick="playSong('{{ track.uri }}', '{{ track.name }}', '{{ track.album.images[0].url }}', '{{ track.artists[0].name }}')">
+                    <img src="{{ track['album']['images'][0]['url'] }}" alt="Album cover" class="album-cover">
+                    <strong>{{ track['name'] }}</strong> by <em>{{ track['artists'][0]['name'] }}</em>
+                </div>
+
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
