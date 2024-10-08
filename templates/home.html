@@ -3,37 +3,45 @@
 {% block title %}Home - Spotify Clone{% endblock %}
 
 {% block content %}
-    <div class="playlist-section">
-        <h2>Thịnh Hành (Trending)</h2>
-        <div id="trending" class="horizontal-scroll">
-            {% for playlist in trending_songs %}
-                <div class="playlist-item">
-                    <img src="{{ playlist['images'][0]['url'] }}" alt="Album cover" class="album-cover">
-                    <strong>{{ playlist['name'] }}</strong>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
+
+   <!-- Thanh tìm kiếm ở trên cùng và giữa trang -->
+   <div class="search-section">
+      <form action="/search" method="GET">
+         <input type="text" name="query" placeholder="Tìm kiếm bài hát, nghệ sĩ..." class="search-bar">
+         <button type="submit" class="search-btn">Tìm kiếm</button>
+      </form>
+   </div>
 
    <div class="playlist-section">
-    <h2>Đề Xuất (Recommended)</h2>
-    <div id="recommended" class="horizontal-scroll">
-        {% for track in recommended_songs %}
+      <h2>Thịnh Hành (Trending)</h2>
+      <div id="trending" class="horizontal-scroll">
+         {% for playlist in trending_songs %}
             <div class="playlist-item">
-                <img src="{{ track['album']['images'][0]['url'] }}" alt="Album cover" class="album-cover">
-                <strong>{{ track['name'] }}</strong> by <em>{{ track['artists'][0]['name'] }}</em>
-
-                {% if premium %}
-                    <button class="play-button">Play</button>
-                {% else %}
-                    <audio controls>
-                        <source src="{{ track['preview_url'] }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                {% endif %}
+               <img src="{{ playlist['images'][0]['url'] }}" alt="Album cover" class="album-cover">
+               <strong>{{ playlist['name'] }}</strong>
             </div>
-        {% endfor %}
-    </div>
-</div>
+         {% endfor %}
+      </div>
+   </div>
+
+   <div class="playlist-section">
+      <h2>Đề Xuất (Recommended)</h2>
+      <div id="recommended" class="horizontal-scroll">
+         {% for track in recommended_songs %}
+            <div class="playlist-item">
+               <img src="{{ track['album']['images'][0]['url'] }}" alt="Album cover" class="album-cover">
+               <strong>{{ track['name'] }}</strong> by <em>{{ track['artists'][0]['name'] }}</em>
+               {% if premium %}
+                  <button class="play-button">Play</button>
+               {% else %}
+                  <audio controls>
+                     <source src="{{ track['preview_url'] }}" type="audio/mpeg">
+                     Your browser does not support the audio element.
+                  </audio>
+               {% endif %}
+            </div>
+         {% endfor %}
+      </div>
+   </div>
 
 {% endblock %}

@@ -3,8 +3,11 @@
 {% block title %}Create Playlist{% endblock %}
 
 {% block content %}
-    <h2>Create a New Playlist</h2>
-    <input type="text" id="playlist-name" placeholder="Enter playlist name">
-    <button onclick="createPlaylist()">Create Playlist</button>
+    <div class="create-playlist-section">
+        <h2>Tạo Danh Sách Phát Mới</h2>
+        <form action="/create_playlist" method="POST">
+            <input type="text" name="playlist_name" placeholder="Nhập tên danh sách phát" required>
+            <button type="submit">Tạo Danh Sách Phát</button>
+        </form>
+    </div>
 {% endblock %}
-

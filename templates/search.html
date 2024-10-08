@@ -1,32 +1,35 @@
 {% extends 'base.html' %}
 
-{% block title %}Search Music{% endblock %}
+{% block title %}Search Results{% endblock %}
 
 {% block content %}
-    <form action="/search" method="GET">
-        <input type="text" name="query" placeholder="Search...">
-        <button type="submit">Search</button>
-    </form>
-    <div id="results">
-        {% if results %}
-            <h2>Search Results:</h2>
-            <ul>
-                {% for track in results['tracks']['items'] %}
-                    <li>
-                        <img src="{{ track['album']['images'][0]['url'] }}" alt="Album Cover">
-                        <div style="display: flex; flex-direction: column">
-                            <strong>{{ track['name'] }}</strong>
-                            {{ track['artists'][0]['name'] }}
-                        </div>
-                        <audio controls>
-                            <source src="{{ track['preview_url'] }}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
+   <!-- Thanh tìm kiếm ở giữa trang -->
+   <div class="search-section">
+      <form action="/search" method="GET">
+         <input type="text" name="query" placeholder="Tìm kiếm bài hát, nghệ sĩ..." value="{{ request.args.get('query', '') }}">
+         <button type="submit">Tìm kiếm</button>
+      </form>
+   </div>
+
+   <!-- Phần kết quả tìm kiếm -->
+   <div class="playlist-section">
+      <h2>Kết Quả Tìm Kiếm</h2>
+      <div id="results" class="horizontal-scroll">
+         {% if results %}
+            {% for track in results['tracks']['items'] %}
+               <div class="playlist-item">
+                  <img src="{{ track['album']['images'][0]['url'] }}" alt="Album cover" class="album-cover">
+                  <strong>{{ track['name'] }}</strong> by <em>{{ track['artists'][0]['name'] }}</em>
+                  <audio controls>
+                     <source src="{{ track['preview_url'] }}" type="audio/mpeg">
+                     Your browser does not support the audio element.
+                  </audio>
+               </div>
+            {% endfor %}
+         {% else %}
             <p>No results found.</p>
-        {% endif %}
-    </div>
+         {% endif %}
+      </div>
+   </div>
+
 {% endblock %}
