@@ -1,5 +1,4 @@
-import json
-from flask import Flask, request, redirect, session, url_for, render_template, jsonify, flash, get_flashed_messages
+from flask import Flask, request, redirect, session, url_for, render_template, flash
 from flask_cors import CORS
 from spotipy import Spotify, SpotifyException
 from spotipy.oauth2 import SpotifyOAuth
@@ -20,7 +19,6 @@ sp_oauth = SpotifyOAuth(
     redirect_uri=SPOTIPY_REDIRECT_URI,
     scope="user-read-private user-library-read playlist-modify-public playlist-modify-private"
 )
-
 
 
 def get_token():
@@ -132,6 +130,23 @@ def create_playlist():
 
     return render_template('create_playlist.html')
 
+
+@app.route('/view_playlists')
+def view_playlists():
+    token_info = get_token()
+
+    if not token_info:
+        return redirect(url_for('login'))
+
+    sp = Spotify(auth=token_info['access_token'])
+
+    try:
+        playlists = sp.current_user_playlists(limit=10)
+    except SpotifyException as e:
+        flash(f"Error fetching playlists: {e}")
+        playlists = {'items': []}
+
+    return render_template('view_playlists.html',)
 
 @app.route('/logout')
 def logout():

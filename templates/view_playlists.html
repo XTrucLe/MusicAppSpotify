@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Playlist{% endblock %}
+
+{% block content %}
+
+<h2>Your Playlists</h2>
+    {% if playlists %}
+        <ul>
+            {% for playlist in playlists %}
+                <li>{{ playlist['name'] }} ({{ playlist['tracks']['total'] }} songs)</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no playlists.</p>
+    {% endif %}
+
+{% endblock %}
